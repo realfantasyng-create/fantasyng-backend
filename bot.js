@@ -5,9 +5,11 @@
 // =====================================================
 const User = require('./User');
 const Message = require('./Message');
+const Post = require('./Post');
+const { Story } = require('./Others');
 const mongoose = require('mongoose');
 
-// ── Run all bot tasks (called on server start + interval) ──
+// — Run all bot tasks (called on server start)
 const runBotTasks = async () => {
   console.log('🤖 Bot running scheduled tasks...');
   await Promise.all([
@@ -19,139 +21,106 @@ const runBotTasks = async () => {
   ]);
 };
 
-// ── Permanently delete messages older than 90 days ─
+// — Expire old messages after 90 days
 const expireOldMessages = async () => {
   try {
-    const result = await Message.deleteMany({
-      permanentDeleteAt: { $lte: new Date() }
-    });
-    if (result.deletedCount > 0) {
-      console.log(`🗑️ Bot: Permanently deleted ${result.deletedCount} expired messages`);
-    }
-  } catch (err) {
-    console.error('Bot expireOldMessages error:', err.message);
-  }
-};
-
-// ── Expire old stories (24 hours) ─────────────────
-const expireOldStories = async () => {
-  try {
-    const Story = mongoose.model('Story');
-    const result = await Story.deleteMany({ expiresAt: { $lte: new Date() } });
-    if (result.deletedCount > 0) {
-      console.log(`📖 Bot: Deleted ${result.deletedCount} expired stories`);
-    }
-  } catch (err) {
-    console.error('Bot expireOldStories error:', err.message);
-  }
-};
-
-// ── Expire old posts ───────────────────────────────
-const expireOldPosts = async () => {
-  try {
-    const Post = mongoose.model('Post');
-    await Post.updateMany(
-      { expiresAt: { $lte: new Date() }, isDeleted: false, expiresAt: { $ne: null } },
+    const cutoff = new Date(Date.now() - 90 * 86400000);
+    const result = await Message.updateMany(
+      { createdAt: { $lt: cutoff }, isDeleted: false },
       { isDeleted: true }
     );
+    if (result.modifiedCount > 0) {
+      console.log(`Bot: Expired ${result.modifiedCount} old messages`);
+    }
   } catch (err) {
-    console.error('Bot expireOldPosts error:', err.message);
+    console.error('Bot expireOldMessages error:', err);
   }
 };
 
-// ── Downgrade expired badges to free ──────────────
+// — Expire old stories after 24 hours
+const expireOldStories = async () => {
+  try {
+    const result = await Story.updateMany(
+      { expiresAt: { $lt: new Date() }, isDeleted: false },
+      { isDeleted: true }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`Bot: Expired ${result.modifiedCount} old stories`);
+    }
+  } catch (err) {
+    console.error('Bot expireOldStories error:', err);
+  }
+};
+
+// — Expire old posts based on badge tier
+const expireOldPosts = async () => {
+  try {
+    const result = await Post.updateMany(
+      { expiresAt: { $lt: new Date() }, isDeleted: false },
+      { isDeleted: true }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`Bot: Expired ${result.modifiedCount} old posts`);
+    }
+  } catch (err) {
+    console.error('Bot expireOldPosts error:', err);
+  }
+};
+
+// — Expire badges and downgrade users
 const expireBadges = async () => {
   try {
     const result = await User.updateMany(
-      {
-        badge: { $in: ['blue', 'red', 'golden'] },
-        badgeExpiry: { $lte: new Date() },
-        isAdminElevated: false,
-      },
-      { badge: 'free', isVerified: false }
+      { badgeExpiry: { $lt: new Date() }, badge: { $ne: 'free' } },
+      { badge: 'free', badgeExpiry: null }
     );
     if (result.modifiedCount > 0) {
-      console.log(`🏅 Bot: Expired ${result.modifiedCount} badges`);
+      console.log(`Bot: Downgraded ${result.modifiedCount} expired badges`);
     }
   } catch (err) {
-    console.error('Bot expireBadges error:', err.message);
+    console.error('Bot expireBadges error:', err);
   }
 };
 
-// ── Reset daily message/like counters at midnight ─
+// — Reset daily counters for all users
 const resetDailyCounters = async () => {
   try {
-    const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
-    await User.updateMany(
-      { lastDailyReset: { $lt: midnight } },
-      { dailyMessageCount: 0, dailyLikeCount: 0, lastDailyReset: new Date() }
+    await User.updateMany({}, { $set: { dailyPostCount: 0, dailyStoryCount: 0 } });
+    console.log('Bot: Reset daily counters');
+  } catch (err) {
+    console.error('Bot resetDailyCounters error:', err);
+  }
+};
+
+// — Check trust scores and apply penalties
+const checkTrustScores = async () => {
+  try {
+    // Ban users with trustScore < 10
+    const banResult = await User.updateMany(
+      { trustScore: { $lt: 10 }, status: 'active' },
+      { status: 'banned', banReason: 'Low trust score' }
     );
-  } catch (err) {
-    console.error('Bot resetDailyCounters error:', err.message);
-  }
-};
-
-// ── Detect mass deletion after being reported ─────
-// Call this when a user deletes messages after a report
-const checkMassDeletion = async (userId) => {
-  try {
-    const Report = mongoose.model('Report');
-    const hasReport = await Report.findOne({
-      reportedUserId: userId,
-      status: 'pending',
-      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Last 24 hrs
-    });
-
-    if (!hasReport) return;
-
-    const recentDeletions = await Message.countDocuments({
-      senderId: userId,
-      isDeleted: true,
-      deletedAt: { $gte: new Date(Date.now() - 60 * 60 * 1000) } // Last 1 hour
-    });
-
-    if (recentDeletions >= 10) {
-      console.log(`🚨 Bot Alert: User ${userId} is mass-deleting messages after being reported! Admin notified.`);
-      // TODO: Send notification to admin (email/push)
-      // In production: emit socket event to admin panel or send email
+    if (banResult.modifiedCount > 0) {
+      console.log(`Bot: Banned ${banResult.modifiedCount} low trust users`);
     }
   } catch (err) {
-    console.error('Bot checkMassDeletion error:', err.message);
+    console.error('Bot checkTrustScores error:', err);
   }
 };
 
-// ── Auto-suspend after 3rd strike ─────────────────
-const processStrike = async (userId) => {
-  try {
-    const user = await User.findById(userId);
-    if (!user) return;
-
-    user.strikes += 1;
-
-    if (user.strikes === 1) {
-      console.log(`⚠️ Bot: Strike 1 for ${user.username} — Warning issued`);
-      // TODO: Send warning notification to user
-    } else if (user.strikes === 2) {
-      // Temporary suspension — 7 days
-      user.status = 'suspended';
-      user.suspendedUntil = new Date(Date.now() + 7 * 86400000);
-      console.log(`🔴 Bot: Strike 2 for ${user.username} — Suspended 7 days`);
-    } else if (user.strikes >= 3) {
-      // Auto-suspend pending admin review
-      user.status = 'suspended';
-      user.suspendedUntil = new Date(Date.now() + 30 * 86400000);
-      console.log(`🚨 Bot: Strike 3 for ${user.username} — Auto-suspended, admin review required`);
-      // TODO: Alert admin for review
-    }
-
-    await user.save();
-  } catch (err) {
-    console.error('Bot processStrike error:', err.message);
-  }
+// — Main bot loop - runs every 60 seconds
+const runBot = () => {
+  console.log('🤖 FantasyNG Bot starting...');
+  
+  // Run immediately on start
+  runBotTasks();
+  checkTrustScores();
+  
+  // Then run every 60 seconds
+  setInterval(() => {
+    runBotTasks();
+    checkTrustScores();
+  }, 60000); // 60 seconds
 };
 
-// ── Start bot on interval (runs every hour) ────────
-const startBot = () => {
-  console.log('🤖 FantasyNG Bot started');
-  runBotTasks(); // Run immediately on start
-  setInterval(runBotTasks, 60 *
+module.exports = { runBot, runBotTasks, checkTrustScores };
