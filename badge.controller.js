@@ -2,9 +2,9 @@
 // controllers/badge.controller.js
 // Badge application, Google Vision check, Admin approval
 // =====================================================
-const BadgeApplication = require('../models/BadgeApplication');
-const User = require('../models/User');
-const visionService = require('../services/vision.service');
+const BadgeApplication = require('./BadgeApplication');
+const User = require('./User');
+const visionService = require('./vision.service');
 
 // Badge subscription pricing (in kobo for Paystack — multiply by 100)
 const BADGE_PRICES = {
@@ -94,7 +94,7 @@ const applyForBadge = async (req, res) => {
 const getMyApplications = async (req, res) => {
   try {
     const applications = await BadgeApplication.find({ userId: req.user._id })
-      .sort({ createdAt: -1 });
+     .sort({ createdAt: -1 });
     res.json({ success: true, applications });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error.' });
@@ -105,8 +105,8 @@ const getMyApplications = async (req, res) => {
 const getApplicationQueue = async (req, res) => {
   try {
     const queue = await BadgeApplication.find({ status: 'pending' })
-      .populate('userId', 'username email phone badge')
-      .sort({ createdAt: 1 }); // Oldest first
+     .populate('userId', 'username email phone badge')
+     .sort({ createdAt: 1 }); // Oldest first
 
     res.json({ success: true, count: queue.length, queue });
   } catch (error) {
@@ -141,7 +141,7 @@ const approveApplication = async (req, res) => {
     });
 
     // Log admin action
-    const { AuditLog } = require('../models/Others');
+    const { AuditLog } = require('./Others');
     await AuditLog.create({
       adminId: req.user._id,
       adminRole: req.user.role,
