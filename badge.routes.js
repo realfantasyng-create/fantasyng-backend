@@ -6,9 +6,9 @@ const router = express.Router();
 const {
   applyForBadge, getMyApplications,
   getApplicationQueue, approveApplication, rejectApplication,
-} = require('../controllers/badge.controller');
-const { protect, adminOnly } = require('../middleware/auth.middleware');
-const upload = require('../middleware/upload.middleware');
+} = require('../badge.controller');
+const { protect, adminOnly } = require('../auth.middleware');
+const upload = require('../upload.middleware');
 
 // Member routes
 router.post('/apply', protect,
