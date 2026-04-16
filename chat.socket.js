@@ -3,10 +3,10 @@
 // Socket.io — Real-time Chat System
 // =====================================================
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const Message = require('../models/Message');
-const Chat = require('../models/Chat');
-const { checkSpam, moderateText } = require('../services/moderation.service');
+const User = require('./User');
+const Message = require('./Message');
+const Chat = require('./Chat');
+const { checkSpam, moderateText } = require('./moderation.service');
 
 // Track online users: { userId: socketId }
 const onlineUsers = {};
@@ -63,18 +63,18 @@ const initSocket = (io) => {
 
         // Check media permissions by badge
         const mediaLimits = {
-          free:      { short_video: 3, voice: 5, long_video: 0, video_call: 0 },
-          blue:      { short_video: Infinity, voice: 15, long_video: 2, video_call: 2 },
-          red:       { short_video: Infinity, voice: Infinity, long_video: Infinity, video_call: Infinity },
-          golden:    { short_video: Infinity, voice: Infinity, long_video: Infinity, video_call: Infinity },
+          free: { short_video: 3, voice: 5, long_video: 0, video_call: 0 },
+          blue: { short_video: Infinity, voice: 15, long_video: 2, video_call: 2 },
+          red: { short_video: Infinity, voice: Infinity, long_video: Infinity, video_call: Infinity },
+          golden: { short_video: Infinity, voice: Infinity, long_video: Infinity, video_call: Infinity },
           executive: { short_video: Infinity, voice: Infinity, long_video: Infinity, video_call: Infinity },
         };
 
-        if (mediaType !== 'text' && mediaType !== 'photo') {
+        if (mediaType!== 'text' && mediaType!== 'photo') {
           const mediaCount = await Message.countDocuments({
             senderId: user._id, mediaType, createdAt: { $gte: today }
           });
-          const mediaLimit = mediaLimits[user.badge]?.[mediaType] ?? 0;
+          const mediaLimit = mediaLimits[user.badge]?.[mediaType]?? 0;
           if (mediaCount >= mediaLimit) {
             return socket.emit('error', { message: `Daily ${mediaType} limit reached. Upgrade your badge.` });
           }
@@ -179,7 +179,7 @@ const initSocket = (io) => {
     socket.on('delete_message', async ({ messageId }) => {
       const message = await Message.findById(messageId);
       if (!message) return;
-      if (message.senderId.toString() !== user._id.toString()) return;
+      if (message.senderId.toString()!== user._id.toString()) return;
 
       message.isDeleted = true;
       message.deletedAt = new Date();
