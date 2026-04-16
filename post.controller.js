@@ -2,8 +2,8 @@
 // controllers/post.controller.js
 // Create, Feed, Trending, Like, Delete Posts
 // =====================================================
-const Post = require('../models/Post');
-const User = require('../models/User');
+const Post = require('../Post');
+const User = require('../User');
 
 // Daily post limits by badge
 const POST_LIMITS = {
