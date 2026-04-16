@@ -3,8 +3,8 @@
 // FantasyNG 24/7 Automated Moderation Bot
 // Runs background tasks automatically
 // =====================================================
-const User = require('../User');
-const Message = require('../Message');
+const User = require('./User');
+const Message = require('./Message');
 const mongoose = require('mongoose');
 
 // ── Run all bot tasks (called on server start + interval) ──
@@ -154,7 +154,4 @@ const processStrike = async (userId) => {
 const startBot = () => {
   console.log('🤖 FantasyNG Bot started');
   runBotTasks(); // Run immediately on start
-  setInterval(runBotTasks, 60 * 60 * 1000); // Run every hour
-};
-
-module.exports = { startBot, checkMassDeletion, processStrike, runBotTasks };
+  setInterval(runBotTasks, 60 *
