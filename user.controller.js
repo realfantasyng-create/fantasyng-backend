@@ -4,7 +4,7 @@
 // FantasyNG Backend | ⚡ EXECUTED BY XCLUSIVE ⚡
 // =====================================================
 
-const User = require('../models/User');
+const User = require('../User');
 const mongoose = require('mongoose');
 
 // ── @GET /api/users/browse ────────────────────────
