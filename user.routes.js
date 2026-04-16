@@ -7,7 +7,7 @@ const {
   browseMembers, getMemberProfile, updateProfile,
   blockUser, unblockUser, updatePrivacySettings,
   getDailyMatch, whoViewedMe,
-} = require('./user.controller');
+} = require('./user.controller')
 const { protect } = require('./auth.middleware');
 const upload = require('./upload.middleware');
 
