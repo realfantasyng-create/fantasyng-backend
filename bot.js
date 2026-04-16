@@ -3,8 +3,8 @@
 // FantasyNG 24/7 Automated Moderation Bot
 // Runs background tasks automatically
 // =====================================================
-const User = require('../models/User');
-const Message = require('../models/Message');
+const User = require('../User');
+const Message = require('../Message');
 const mongoose = require('mongoose');
 
 // ── Run all bot tasks (called on server start + interval) ──
