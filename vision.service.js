@@ -10,7 +10,7 @@ const VISION_URL = 'https://vision.googleapis.com/v1/images:annotate';
 
 // Helper: convert image file to base64
 const imageToBase64 = (filePath) => {
-  const fullPath = path.join(__dirname, '..', filePath);
+  const fullPath = path.join(__dirname, filePath);
   return fs.readFileSync(fullPath).toString('base64');
 };
 
