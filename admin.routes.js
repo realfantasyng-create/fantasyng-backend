@@ -8,8 +8,8 @@ const {
   elevateMember, changeBadgeWithoutPayment,
   getReports, resolveReport, promotePost,
   getRevenue, getAuditLog, getDashboardStats,
-} = require('../controllers/admin.controller');
-const { protect, adminOnly, executivesOnly, ceoOnly } = require('../middleware/auth.middleware');
+} = require('./admin.controller');
+const { protect, adminOnly, executivesOnly, ceoOnly } = require('./auth.middleware');
 
 // All admin routes require login + admin role
 router.use(protect, adminOnly);
