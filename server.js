@@ -16,7 +16,7 @@ const rateLimit  = require('express-rate-limit');
 const path       = require('path');
 
 const connectDB  = require('./db');
-const { initSocket } = require('./sockets/chat.socket');
+const { initSocket } = require('./chat.socket');
 const { startBot }   = require('./utils/bot');
 
 // ── Import all route files ────────────────────────
