@@ -7,9 +7,9 @@ const {
   browseMembers, getMemberProfile, updateProfile,
   blockUser, unblockUser, updatePrivacySettings,
   getDailyMatch, whoViewedMe,
-} = require('../user.controller');
-const { protect } = require('../auth.middleware');
-const upload = require('../upload.middleware');
+} = require('./user.controller');
+const { protect } = require('./auth.middleware');
+const upload = require('./upload.middleware');
 
 router.get('/browse', protect, browseMembers);
 router.get('/daily-match', protect, getDailyMatch);
