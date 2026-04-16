@@ -3,7 +3,7 @@
 // =====================================================
 const express = require('express');
 const router = express.Router();
-const { signup, login, logout, forgotPassword, resetPassword, getMe } = require('./controllers/auth.controller');
+const { signup, login, logout, forgotPassword, resetPassword, getMe } = require('./auth.controller');
 const { protect } = require('./auth.middleware');
 
 router.post('/signup', signup);
