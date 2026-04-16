@@ -3,7 +3,7 @@
 // Admin Panel — Member management, Reports, Revenue
 // Only accessible by admin roles
 // =====================================================
-const User = require('../models/User');
+const User = require('./User');
 const mongoose = require('mongoose');
 
 // ── @GET /api/admin/members ───────────────────────
@@ -22,10 +22,10 @@ const getAllMembers = async (req, res) => {
     if (role) filter.role = role;
 
     const members = await User.find(filter)
-      .select('-passwordHash')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+     .select('-passwordHash')
+     .sort({ createdAt: -1 })
+     .skip((page - 1) * limit)
+     .limit(parseInt(limit));
 
     const total = await User.countDocuments(filter);
 
@@ -130,7 +130,7 @@ const elevateMember = async (req, res) => {
 
     await User.findByIdAndUpdate(req.params.id, {
       role: newRole,
-      badge: 'golden',     // Auto-assign Golden badge to any admin
+      badge: 'golden', // Auto-assign Golden badge to any admin
       originalBadge,
       isAdminElevated: true,
     });
@@ -171,11 +171,11 @@ const getReports = async (req, res) => {
     const { status = 'pending', page = 1, limit = 20 } = req.query;
 
     const reports = await Report.find({ status })
-      .populate('reporterId', 'username email')
-      .populate('reportedUserId', 'username email badge status')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+     .populate('reporterId', 'username email')
+     .populate('reportedUserId', 'username email badge status')
+     .sort({ createdAt: -1 })
+     .skip((page - 1) * limit)
+     .limit(parseInt(limit));
 
     res.json({ success: true, count: reports.length, reports });
   } catch (error) {
@@ -227,7 +227,7 @@ const getRevenue = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Revenue data restricted to Executives only.' });
     }
 
-    const { Subscription, VirtualGift } = require('../models/Others');
+    const { Subscription, VirtualGift } = require('./Others');
 
     const totalBadgeRevenue = await Subscription.aggregate([
       { $match: { status: 'active' } },
@@ -272,11 +272,11 @@ const getAuditLog = async (req, res) => {
     }
 
     const logs = await AuditLog.find(filter)
-      .populate('adminId', 'username role')
-      .populate('targetUserId', 'username')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+     .populate('adminId', 'username role')
+     .populate('targetUserId', 'username')
+     .sort({ createdAt: -1 })
+     .skip((page - 1) * limit)
+     .limit(parseInt(limit));
 
     res.json({ success: true, count: logs.length, logs });
   } catch (error) {
@@ -288,7 +288,7 @@ const getAuditLog = async (req, res) => {
 const getDashboardStats = async (req, res) => {
   try {
     const Report = mongoose.model('Report');
-    const BadgeApplication = require('../models/BadgeApplication');
+    const BadgeApplication = require('./BadgeApplication');
 
     const [totalMembers, newToday, pendingReports, pendingBadges, onlineNow] = await Promise.all([
       User.countDocuments(),
