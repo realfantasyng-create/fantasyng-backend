@@ -15,7 +15,7 @@ const morgan     = require('morgan');
 const rateLimit  = require('express-rate-limit');
 const path       = require('path');
 
-const connectDB  = require('./config/db');
+const connectDB  = require('./db');
 const { initSocket } = require('./sockets/chat.socket');
 const { startBot }   = require('./utils/bot');
 
