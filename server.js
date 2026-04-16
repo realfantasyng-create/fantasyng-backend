@@ -17,21 +17,21 @@ const path       = require('path');
 
 const connectDB  = require('./db');
 const { initSocket } = require('./chat.socket');
-const { startBot }   = require('./utils/bot');
+const { startBot }   = require('./bot');
 
 // ── Import all route files ────────────────────────
-const authRoutes    = require('./routes/auth.routes');
-const userRoutes    = require('./routes/user.routes');
-const postRoutes    = require('./routes/post.routes');
-const badgeRoutes   = require('./routes/badge.routes');
-const paymentRoutes = require('./routes/payment.routes');
-const adminRoutes   = require('./routes/admin.routes');
+const authRoutes    = require('./auth.routes');
+const userRoutes    = require('./user.routes');
+const postRoutes    = require('./post.routes');
+const badgeRoutes   = require('./badge.routes');
+const paymentRoutes = require('./payment.routes');
+const adminRoutes   = require('./admin.routes');
 const {
   chatRouter,
   reportRouter,
   eventRouter,
   storyRouter,
-} = require('./routes/other.routes');
+} = require('./other.routes');
 
 // ── Connect to MongoDB ────────────────────────────
 connectDB();
