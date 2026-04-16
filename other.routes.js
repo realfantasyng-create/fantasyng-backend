@@ -4,9 +4,9 @@
 // =====================================================
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/auth.middleware');
-const Message = require('../models/Message');
-const Chat = require('../models/Chat');
+const { protect } = require('./auth.middleware');
+const Message = require('./Message');
+const Chat = require('./Chat');
 
 // Get all chats for current user
 router.get('/', protect, async (req, res) => {
@@ -62,15 +62,13 @@ router.get('/admin/recover/:messageId', protect, async (req, res) => {
   }
 });
 
-module.exports = router;
-
 
 // =====================================================
 // routes/report.routes.js
 // =====================================================
 const reportRouter = express.Router();
-const { Report } = require('../models/Others');
-const { checkMassDeletion, processStrike } = require('../utils/bot');
+const { Report } = require('./Others');
+const { checkMassDeletion, processStrike } = require('./bot');
 
 reportRouter.post('/', protect, async (req, res) => {
   try {
@@ -110,7 +108,7 @@ reportRouter.get('/my-reports', protect, async (req, res) => {
 // routes/event.routes.js
 // =====================================================
 const eventRouter = express.Router();
-const { Event } = require('../models/Others');
+const { Event } = require('./Others');
 
 // Browse events — members only
 eventRouter.get('/', protect, async (req, res) => {
@@ -157,7 +155,7 @@ eventRouter.post('/', protect, async (req, res) => {
 // routes/story.routes.js
 // =====================================================
 const storyRouter = express.Router();
-const upload = require('../middleware/upload.middleware');
+const upload = require('./upload.middleware');
 
 storyRouter.post('/', protect, upload.single('media'), async (req, res) => {
   try {
