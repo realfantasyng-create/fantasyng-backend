@@ -5,7 +5,7 @@
 // =====================================================
 
 const jwt = require('jsonwebtoken');
-const User = require('../User');
+const User = require('./User');
 
 // ── Protect route — must be logged in ─────────────
 const protect = async (req, res, next) => {
