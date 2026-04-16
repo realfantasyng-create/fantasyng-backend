@@ -2,15 +2,15 @@
 // controllers/payment.controller.js
 // Paystack Integration — Badge Subscriptions + Gifts
 // =====================================================
-const paystackService = require('../services/paystack.service');
-const Subscription = mongoose.model ? require('../models/Others').Subscription : null;
-const User = require('../models/User');
+const paystackService = require('./paystack.service');
+const { Subscription, VirtualGift } = require('./Others');
+const User = require('./User');
 const mongoose = require('mongoose');
 
 // Badge prices in NAIRA
 const BADGE_PRICES_NGN = {
-  blue:   { monthly: 1500, '3months': 3500, '6months': 6000, annual: 10000 },
-  red:    { monthly: 3500, '3months': 8500, '6months': 15000, annual: 25000 },
+  blue: { monthly: 1500, '3months': 3500, '6months': 6000, annual: 10000 },
+  red: { monthly: 3500, '3months': 8500, '6months': 15000, annual: 25000 },
   golden: { monthly: 6000, '3months': 15000, '6months': 27000, annual: 45000 },
 };
 
@@ -28,7 +28,7 @@ const initiatePayment = async (req, res) => {
     let amount, metadata, callbackUrl;
 
     if (type === 'badge') {
-      if (!badgeTier || !plan) {
+      if (!badgeTier ||!plan) {
         return res.status(400).json({ success: false, message: 'Badge tier and plan required.' });
       }
       amount = BADGE_PRICES_NGN[badgeTier]?.[plan];
@@ -38,7 +38,7 @@ const initiatePayment = async (req, res) => {
       callbackUrl = `${process.env.FRONTEND_URL}/upgrade-success.html`;
 
     } else if (type === 'gift') {
-      if (!giftType || !receiverId) {
+      if (!giftType ||!receiverId) {
         return res.status(400).json({ success: false, message: 'Gift type and receiver required.' });
       }
       amount = GIFT_PRICES[giftType];
@@ -77,7 +77,7 @@ const verifyPayment = async (req, res) => {
     const { reference } = req.params;
     const transaction = await paystackService.verifyTransaction(reference);
 
-    if (transaction.status !== 'success') {
+    if (transaction.status!== 'success') {
       return res.status(400).json({ success: false, message: 'Payment not successful.' });
     }
 
@@ -94,7 +94,6 @@ const verifyPayment = async (req, res) => {
       });
 
       // Record subscription
-      const { Subscription } = require('../models/Others');
       await Subscription.create({
         userId,
         badgeTier,
@@ -109,7 +108,6 @@ const verifyPayment = async (req, res) => {
     }
 
     if (type === 'gift') {
-      const { VirtualGift } = require('../models/Others');
       const amount = transaction.amount / 100;
       await VirtualGift.create({
         senderId,
@@ -135,11 +133,11 @@ const paystackWebhook = async (req, res) => {
   try {
     // Verify webhook signature
     const hash = require('crypto')
-      .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
-      .update(JSON.stringify(req.body))
-      .digest('hex');
+     .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
+     .update(JSON.stringify(req.body))
+     .digest('hex');
 
-    if (hash !== req.headers['x-paystack-signature']) {
+    if (hash!== req.headers['x-paystack-signature']) {
       return res.status(400).send('Invalid signature');
     }
 
